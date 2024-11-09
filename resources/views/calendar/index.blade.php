@@ -12,7 +12,7 @@
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/css/icons.min.css') }}" />
 </head>
 <body data-menu-color="light" data-sidebar="hidden">
-    <div id="app-layout" style="background-color: #00EFEFFF">
+    <div id="app-layout"  style="background-color: #00aeef">
         <div class="topbar-custom" style="background-color: #00aeef">
             <div class="container-fluid">
                 <div class="d-flex justify-content-between">
@@ -66,9 +66,15 @@
     <script src="{{ asset('assets/libs/fullcalendar/index.global.min.js') }}"></script>
     <script>
         "use strict";
+
+        // Declare the calendar variable in the global scope
+        let calendar;
+
         document.addEventListener("DOMContentLoaded", function() {
             let e = document.getElementById("calendar");
-            new FullCalendar.Calendar(e, {
+
+            // Initialize FullCalendar and assign to the global calendar variable
+            calendar = new FullCalendar.Calendar(e, {
                 timeZone: "local",
                 locale: "id",
                 initialView: "timeGridWeek",
@@ -90,7 +96,7 @@
                 dayHeaderFormat: { // Customize date format for day headers
                     weekday: 'long', // Full weekday name, e.g., "Senin"
                     day: '2-digit',  // Two-digit day, e.g., "24"
-                    month: 'long' // Two-digit month, e.g., "10"
+                    month: 'long' // Full month name, e.g., "Oktober"
                 },
                 slotLabelFormat: { // Customize the hour slot format to 24-hour with minutes
                     hour: '2-digit',
@@ -105,7 +111,10 @@
                 slotMinTime: '07:00:00',
                 slotMaxTime: '17:00:00',
                 events: @json($events),
-            }).render()
+            });
+
+            // Render the calendar
+            calendar.render();
         });
 
         function updateClock() {
@@ -127,6 +136,12 @@
 
         // Initial call to display clock immediately on page load
         updateClock();
+
+        // Listen for the SendMessageEvent and refresh calendar events
+        window.Echo.channel('schedules')
+            .listen('SendMessageEvent', () => {
+                calendar.refetchEvents(); // Refresh calendar events
+            });
     </script>
     <script src="{{ asset('assets/js/app.js') }}"></script>
 </body>

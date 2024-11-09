@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\SendMessageEvent;
 use App\Models\Schedule;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use function event;
 use function redirect;
 
 class ScheduleController extends Controller
@@ -21,7 +23,7 @@ class ScheduleController extends Controller
     {
         $events = [];
 
-        $schedules = Schedule::all();
+        $schedules = Schedule::where('start_time', '>=', Carbon::today())->get();
 
         foreach ($schedules as $schedule) {
             $events[] = [
@@ -113,6 +115,10 @@ class ScheduleController extends Controller
         ];
         Schedule::create($schedule);
 
+        event(new SendMessageEvent(
+            message: 'Jadwal Baru Ditambahkan: ' . $validatedData['description']
+        ));
+
         return redirect()->route('dashboard')->with('success', 'Data Jadwal & Agenda Berhasil Ditambahkan');
     }
 
@@ -199,6 +205,9 @@ class ScheduleController extends Controller
 
     public function destroy(Schedule $schedule)
     {
+        event(new SendMessageEvent(
+            message: 'Jadwal Dihapus: ' . $schedule->description
+        ));
         $schedule->delete();
         return redirect()->route('dashboard')->with('success', 'Data Jadwal & Agenda Berhasil Dihapus');
     }
